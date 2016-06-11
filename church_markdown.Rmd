@@ -8,6 +8,7 @@ output: html_document
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 library(ggplot2)
 library(DT)
+library(plotly)
 church <-read.csv("D:/church.csv", stringsAsFactors = FALSE)
 church$Month <- as.character(church$Month)
 church$Month <- factor(church$Month, levels=unique(church$Month))
@@ -67,8 +68,25 @@ Looking at broad net income. Very few months over the last five+ years have had 
 ## Average Month? 
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-ggplot(data = total, aes(x = Group.1, y = x, color = type, label = type)) + geom_line(aes(group = type), size=1.5) + theme(axis.text.x = element_text(angle = 90)) + ylab("Dollars") + xlab("Month")
+f <- list(
+family = "Garamond, monospace",
+size = 18,
+color = "#7f7f7f"
+)
+xax <- list(
+title = "Month",
+titlefont = f
+)
+yax <- list(
+title = "Dollars",
+titlefont = f
+)
+p <- plot_ly(total, x = Group.1, y = x, name = "net income", color = type) %>%
+layout(xaxis = xax, yaxis = yax)
+p
 ```
+
+This chart is interactive, so you can mouse over each month to see the actual values of total income, total expenses, and net income. 
 
 Which months are bad? Which are good? The start of the year is historically bad because of expenses being higher. Income is very stable for the first nine months of the year then goes up in November. Looking month by month, the only month which has averaged a net positive has been November, but October and December are close. 
 
@@ -79,3 +97,5 @@ church$Year <- NULL
 church <- church[,c(3,1,2,4)]
 datatable(church, class = 'compact')
 ```
+
+
