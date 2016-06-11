@@ -1,8 +1,13 @@
 ---
-title: "Church Finances 2011-2016"
-author: "Ryan Burge"
-date: "June 10, 2016"
-output: html_document
+layout: post
+title: "Church Finances"
+date: 2016-6-11
+output:
+  html_document
+share: true
+categories: blog
+excerpt: "Doing Some Financial Analysis feautring Plot.ly and DataTable packages"
+tags: [rstats]
 ---
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
