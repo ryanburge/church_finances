@@ -1,0 +1,81 @@
+---
+title: "Church Finances 2011-2016"
+author: "Ryan Burge"
+date: "June 10, 2016"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+library(ggplot2)
+library(DT)
+church <-read.csv("D:/church.csv", stringsAsFactors = FALSE)
+church$Month <- as.character(church$Month)
+church$Month <- factor(church$Month, levels=unique(church$Month))
+church$net <- church$Income - church$Expenses
+agg <- aggregate(church$net, list(church$Month), mean)
+agg2 <- aggregate(church$Expenses, list(church$Month), mean)
+agg3 <- aggregate(church$Income, list(church$Month), mean)
+agg3$type <- c("Income")
+agg2$type <- c("Expenses")
+agg$type <- c("Net")
+total <- rbind(agg, agg2, agg3)
+colfunc<-colorRampPalette(c("red","yellow","springgreen","royalblue"))
+```
+
+## All Years Together
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = Expenses, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Total Expenses")
+```
+
+Looking at just expenses here. January and February of 2016 were actually lower than average, as well as April. March was very high but that was somewhat due to the fact that we spent $3000 on a sound system. Without that it would have in normal range. May was the highest expense May that we have had since 2011. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = Income, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + geom_hline(yintercept = mean(church$Income), linetype = "longdash")+ scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Total Income")
+```
+
+Our total income is lower than normal, which is represented by the dashed line, but has been relatively consistent. 
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = net, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + geom_hline(yintercept = 0, linetype = "longdash")+ scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Net Income")
+```
+
+Net income is arrived at by taking the income and subtracting the expenses. 2016 has had two really bad months so far in terms of net income. But almost all months have a negative net income but it's usually much smaller. 
+
+## Comparing Years
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = Expenses)) + geom_line(aes(group = Year)) + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Expenses")
+```
+
+These facet wraps just give a sense of how each year looks on its own. Expenses are all over the place. They can jump up and down pretty dramatically from month to month. 2015 is a good example of that. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = Income)) + geom_line(aes(group = Year)) +  theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Income")
+```
+
+Total income is much more stable over time. 2013 and 2014 for instance were very even. 2016 looks to be relatively the same. It's interesting to note that lost income in early 2015 because of weather seems to be made up for with a larger than normal April. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = church, aes(x = Month, y = net)) + geom_line(aes(group = Year)) +  geom_hline(yintercept = 0, linetype = "longdash") + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Net Income")
+```
+
+Looking at broad net income. Very few months over the last five+ years have had a positive net income. 2013 and 2014 look pretty similar with the trend moving toward zero near year end. 
+
+## Average Month? 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(data = total, aes(x = Group.1, y = x, color = type, label = type)) + geom_line(aes(group = type), size=1.5) + theme(axis.text.x = element_text(angle = 90)) + ylab("Dollars") + xlab("Month")
+```
+
+Which months are bad? Which are good? The start of the year is historically bad because of expenses being higher. Income is very stable for the first nine months of the year then goes up in November. Looking month by month, the only month which has averaged a net positive has been November, but October and December are close. 
+
+Here's a quick data table to show that decline in a different format.  
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+church$Month <- NULL
+church$Year <- NULL
+church <- church[,c(3,1,2,4)]
+datatable(church, class = 'compact')
+```
