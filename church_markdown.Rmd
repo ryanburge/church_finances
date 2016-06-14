@@ -100,7 +100,33 @@ Here's a quick data table to show that decline in a different format.
 church$Month <- NULL
 church$Year <- NULL
 church <- church[,c(3,1,2,4)]
-datatable(church, class = 'compact')
+datatable(church, colnames = c('Date', 'Total Income', 'Total Expenses', 'Net Income'))
 ```
 
+## How Long Until the Money is Gone? 
 
+I wanted to project how long it would be for the church to completely run out of assets. I took the checking account balance as of June 1, 2016 and the amount in wills and bequest as of May 31, 2016 as a starting point. I did three pojection models. Each takes a look back at how much our deficit was and projects that forward. The green is the mean net income over 2015 and the first half of 2016. The orange line is 2013 to present. The blue line is 2011 to present. 
+
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+project <-read.csv("D:/church_finances/project.csv", stringsAsFactors = FALSE)
+
+f <- list(
+family = "Garamond, monospace",
+size = 18,
+color = "#7f7f7f"
+)
+xax <- list(
+title = "Month",
+titlefont = f
+)
+yax <- list(
+title = "Assets",
+titlefont = f
+)
+p <- plot_ly(project, x = Date, y = Assets, name = "Total Assets", color = type) %>%
+layout(xaxis = xax, yaxis = yax)
+p
+```
+
+The green line is the most bleak scenario. Under this project the money runs out around March 2019. The other two scenarios put this event happening somewhere in the first half of 2020. These are just projections. They can't take into account unforeseen expenses or income. This is just an educated guess, nothing more and nothing less. 
