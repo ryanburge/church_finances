@@ -33,5 +33,3 @@ ggplot(data = church, aes(x = Month, y = net)) + geom_line(aes(group = Year)) + 
 ggplot(data = church, aes(x = Month, y = Income)) + geom_line(aes(group = Year)) +  geom_hline(yintercept = mean(church$Income), linetype = "longdash") + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Income")
 
 ggplot(data = church, aes(x = Month, y = Expenses)) + geom_line(aes(group = Year)) +  geom_hline(yintercept = mean(church$Expenses), linetype = "longdash") + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Expenses")
-
-ggplot(data = total, aes(x = Group.1, y = x, color = type, label = type)) + geom_line(aes(group = type), size=1.5) + theme(axis.text.x = element_text(angle = 90)) + ylab("Dollars") + xlab("Month")
