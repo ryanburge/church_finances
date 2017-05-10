@@ -1,0 +1,117 @@
+---
+layout: post
+title: "The State of the Church's Finances"
+date: 2016-7-24
+output:
+  html_document
+share: true
+categories: blog
+excerpt: "Doing Some Financial Analysis feautring Plot.ly and DataTable packages"
+tags: [rstats]
+---
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+library(ggplot2)
+library(DT)
+library(plotly)
+library(readr)
+library(dplyr)
+library(extrafont)
+library(reshape2)
+
+Sys.setenv("plotly_username"="ryanburge")
+Sys.setenv("plotly_api_key"="bvzv16do7x")
+
+church <- read_csv("D:/church_finances/church_new.csv")
+church$Month <- as.character(church$Month)
+church$Month <- factor(church$Month, levels=unique(church$Month))
+
+church <- church %>% mutate(net = Income - Expenses)
+total <- church %>% mutate(net = Income - Expenses) %>% group_by(Month) %>%  summarise(net_m = mean(net), exp_m = mean(Expenses), income_m = mean(Income))
+
+
+colfunc<-colorRampPalette(c("#4c0000", "#f28100", "#c9cc99", "#008077", "#80c4ff", "#38008c", "#ff408c"))
+
+```
+
+## Some Caveats
+
+I did my best to remove any sort of income that was not our regular tithes and offerings. There have been many instances of the church dipping into the wills and bequests money to keep money in the checking account. I have done my best to pull those out when I could. I know there are several instances when I didn't because I could not pinpoint when exactly the transfers were made. 
+
+I also did the same for expenses. Any one time expense like the sound system or having to fix something in the church does not show up in these reports. 
+
+These reports cover January of 2011 to May of 2016. 
+
+## All Years Together
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+ggplot(data = church, aes(x = Month, y = Expenses, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Total Expenses") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+Looking at just expenses here. Our 2016 expenses are running lower than average, except for the month of May. March was actually higher than the number presented because of the purchase of the sound system. I removed it because it was a one time expense. The month of May was a confluence of a lot of factors which made it a very expensive month. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+ggplot(data = church, aes(x = Month, y = Income, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + geom_hline(yintercept = mean(church$Income), linetype = "longdash")+ scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Total Income") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+Our total income is lower than normal, which is represented by the dashed line, but has been relatively consistent. 
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+
+ggplot(data = church, aes(x = Month, y = net, color = Year, label = Year)) +
+  geom_line(aes(group = Year), size=1.5) + geom_point() + theme(axis.text.x = element_text(angle = 90)) + geom_text(check_overlap = TRUE) +scale_colour_continuous(guide = FALSE) + geom_hline(yintercept = 0, linetype = "longdash")+ scale_colour_gradientn(colours = colfunc(5))  + theme(legend.position="none") + ylab("Net Income") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+Net income is arrived at by taking the income and subtracting the expenses. 2016 has had two really bad months so far in terms of net income. But almost all months have a negative net income but it's usually much smaller. 
+
+## Comparing Years
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+ggplot(data = church, aes(x = Month, y = Expenses)) + geom_line(aes(group = Year)) + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Expenses") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+These facet wraps just give a sense of how each year looks on its own. Expenses are all over the place. They can jump up and down pretty dramatically from month to month. 2015 is a good example of that. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+ggplot(data = church, aes(x = Month, y = Income)) + geom_line(aes(group = Year)) +  theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Total Income") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+Total income is much more stable over time. 2013 and 2014 for instance were very even. 2016 looks to be relatively the same. It's interesting to note that lost income in early 2015 because of weather seems to be made up for with a larger than normal April. 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+ggplot(data = church, aes(x = Month, y = net)) + geom_line(aes(group = Year)) +  geom_hline(yintercept = 0, linetype = "longdash") + theme(axis.text.x = element_text(angle = 90)) + facet_wrap(~Year) + ylab("Net Income") + theme(text=element_text(size=16, family="Roboto Condensed"))
+```
+
+Looking at broad net income. Very few months over the last five+ years have had a positive net income. 2013 and 2014 look pretty similar with the trend moving toward zero near year end. 
+
+## Average Month? 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+total <- church %>% mutate(net = Income - Expenses) %>% group_by(Month) %>%  summarise(net_m = mean(net), exp_m = mean(Expenses), income_m = mean(Income))
+total <- melt(total, id.vars=c("Month"))
+p1 <- ggplot(total, aes(x=Month, y= value, color = variable)) + geom_line(aes(group=variable), size = 1.5) + geom_point() + theme(text=element_text(size=16, family="Roboto Condensed")) + theme(axis.text.x = element_text(angle = 90)) + ylab("Dollar Amounts")  + xlab("Month") + scale_color_manual(labels =c("Net", "Expenses", "Income"), values=c("dodgerblue3", "firebrick1", "seagreen")) + theme(legend.title=element_blank()) + geom_hline(yintercept = 0, linetype = 2)
+
+ggplotly(p1)
+```
+
+Which months are bad? Which are good? The start of the year is historically bad because of expenses being higher. Income is very stable for the first nine months of the year then goes up in November. Looking month by month, the only month which has averaged a net positive has been November, but October and December are close. 
+
+
+## How Long Until the Money is Gone? 
+
+I wanted to project how long it would be for the church to completely run out of assets. I took the checking account balance as of June 1, 2016 and the amount in wills and bequest as of May 31, 2016 as a starting point. I did three pojection models. Each takes a look back at how much our deficit was and projects that forward. The bottom line is the mean net income over 2015 and the first half of 2016. The middle line is 2013 to present. The top line is 2011 to present. 
+
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, fig.width=12}
+project <-read.csv("D:/church_finances/project.csv", stringsAsFactors = FALSE)
+
+p2 <- ggplot(data = project, aes(x = Date, y = Assets, color = type)) +
+    geom_line(aes(group = type)) + geom_point() + theme(text=element_text(size=12, family="Roboto Condensed")) + theme(axis.text.x = element_text(angle = 90)) + ylab("Dollar Amounts")  + xlab("Month") + scale_color_manual(values=c("dodgerblue3", "firebrick1", "seagreen")) + theme(legend.title=element_blank()) + geom_hline(yintercept = 0, linetype = 2) + guides(col = guide_legend(reverse = TRUE))
+
+ggplotly(p2)
+```
+
+The bottom line is the most bleak scenario. Under this projection the money runs out around March 2019. The other two scenarios put this event happening somewhere in the first half of 2020. These are just projections. They can't take into account unforeseen expenses or income. This is just an educated guess, nothing more and nothing less. 
+
+Update for May of 2017. The bottom line is still pretty accurate. Our average monthly deficit from January 2016 to April of 2017 is $2328/month. With about sixty thousand dollars in our accounts we have about 25 months until the money is completely gone. That's June of 2019. 
